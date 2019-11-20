@@ -1,5 +1,6 @@
 const io = require('socket.io')
 const _ = require('lodash')
+const Player = require('./Player')
 
 const generateId = (function() {
     let socketId = 0
@@ -11,8 +12,14 @@ class Game {
     constructor() {
         
         this.connection = null
-        this.users = []
+        this.players = []
         this.physicsWorld = null
+
+        this.playersToAdd = []
+        this.playersToRemove = []
+
+        this.gameLoop = this.gameLoop.bind(this)
+        this.gameLoopInterval = null
 
     }
 
@@ -31,26 +38,43 @@ class Game {
 
         this.connection.on('connection', (socket) => {
 
-            console.log('Someone connected!')
-            socket.on('disconnect', () => {
-                console.log('Someone disconnected!')
-
-                // console.log(`SocketIO :: User disconnect :: ${user.id}`)
-                // this.userLeftRoom(user)
-
-                // const ownerId = _.get(this, 'owner.id')
-                // if(user.id === ownerId) this.delete()
-                // else if(this.users.length === 0) this.delete()
-
-                // this.users = this.users.filter(x => x.id !== user.id)
-
-            })
+            let player = new Player({ socket, game: this })
+            this.playersToAdd.push(player)
+            
         })
 
     }
 
+    removePlayer(player) {
+        this.playersToRemove.push(player)
+    }
+
     startGame() {
 
+        this.gameLoopInterval = setInterval(this.gameLoop, 10)
+
+    }
+
+    gameLoop() {
+
+        if(this.playersToAdd.length > 0) {
+            this.players = [
+                ...this.players,
+                ...this.playersToAdd
+            ]
+            this.playersToAdd = []
+        }
+
+        if(this.playersToRemove.length > 0) {
+            this.players = this.players.filter(player => this.playersToRemove.find(x => x.id === player.id) == null)
+            this.playersToRemove = []
+        }
+
+        this.players.forEach(player => player.frame())
+
+        this.connection.emit('game_state', {
+            players: this.players.map(x => x.getNetInfo())
+        })
     }
 
 }

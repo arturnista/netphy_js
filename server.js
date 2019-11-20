@@ -42,3 +42,4 @@ httpServer.listen(port, startCallback)
 
 const game = new Game()
 game.create(httpServer)
+game.startGame()
