@@ -33,7 +33,7 @@ server.get('/js/:filename', function(req, res, next) {
 const port = process.env.PORT || 5000
 
 const startCallback = function() {
-    console.log('\n\n' + figlet.textSync('Multi\nPhys', 'Delta Corps Priest 1'));
+    console.log('\n\n' + figlet.textSync('netphys', 'The Edge'));
     console.log(`Server running on port ${port}\n\n`);
 }
 
