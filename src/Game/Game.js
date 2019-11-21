@@ -1,6 +1,8 @@
 const io = require('socket.io')
 const _ = require('lodash')
-const Player = require('./Player')
+const Player = require('./Player/Player')
+const Ground = require('./Ground/Ground')
+const planck = require('planck-js')
 
 const generateId = (function() {
     let socketId = 0
@@ -12,11 +14,11 @@ class Game {
     constructor() {
         
         this.connection = null
-        this.players = []
+        this.gameObjects = []
         this.physicsWorld = null
 
-        this.playersToAdd = []
-        this.playersToRemove = []
+        this.gameObjectsToAdd = []
+        this.gameObjectsToRemove = []
 
         this.gameLoop = this.gameLoop.bind(this)
         this.gameLoopInterval = null
@@ -26,6 +28,19 @@ class Game {
     create(server) {    
         console.log(`SocketIO :: Room created :: ${server.address().port}`)
         this.connection = io.listen(server)
+
+        this.physicsWorld = planck.World({
+            gravity: planck.Vec2(0, -10)
+        })
+        this.physicsStep = 1 / 60
+
+        this.createGameObject(
+            new Ground({
+                game: this,
+                position: { x: 50, y: 5 },
+                size: { x: 100, y: 10 },
+            })
+        )
 
         server.on('connection', function (socket) {
             if(!server.sockets) server.sockets = {}
@@ -39,14 +54,18 @@ class Game {
         this.connection.on('connection', (socket) => {
 
             let player = new Player({ socket, game: this })
-            this.playersToAdd.push(player)
+            this.createGameObject(player)
             
         })
 
     }
 
+    createGameObject(gameObject) {
+        this.gameObjectsToAdd.push( gameObject )
+    }
+
     removePlayer(player) {
-        this.playersToRemove.push(player)
+        this.gameObjectsToRemove.push(player)
     }
 
     startGame() {
@@ -57,23 +76,25 @@ class Game {
 
     gameLoop() {
 
-        if(this.playersToAdd.length > 0) {
-            this.players = [
-                ...this.players,
-                ...this.playersToAdd
+        if(this.gameObjectsToAdd.length > 0) {
+            this.gameObjects = [
+                ...this.gameObjects,
+                ...this.gameObjectsToAdd
             ]
-            this.playersToAdd = []
+            this.gameObjectsToAdd = []
         }
 
-        if(this.playersToRemove.length > 0) {
-            this.players = this.players.filter(player => this.playersToRemove.find(x => x.id === player.id) == null)
-            this.playersToRemove = []
+        if(this.gameObjectsToRemove.length > 0) {
+            this.gameObjects = this.gameObjects.filter(player => this.gameObjectsToRemove.find(x => x.id === player.id) == null)
+            this.gameObjectsToRemove = []
         }
 
-        this.players.forEach(player => player.frame())
+        this.physicsWorld.step(this.physicsStep)
+
+        this.gameObjects.forEach(obj => obj.frame())
 
         this.connection.emit('game_state', {
-            players: this.players.map(x => x.getNetInfo())
+            gameObjects: this.gameObjects.map(x => x.getNetInfo())
         })
     }
 

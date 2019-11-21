@@ -26,6 +26,9 @@ server.get('/', function(req, res, next) {
 server.get('/css/:filename', function(req, res, next) {
     res.sendFile(`${__dirname}/public/css/${req.params.filename}`)
 })
+server.get('/img/:filename', function(req, res, next) {
+    res.sendFile(`${__dirname}/public/img/${req.params.filename}`)
+})
 server.get('/js/:filename', function(req, res, next) {
     res.sendFile(`${__dirname}/public/js/${req.params.filename}`)
 })
