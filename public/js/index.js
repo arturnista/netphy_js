@@ -9,7 +9,8 @@ let receivedGameObjects = []
 
 window.onload = function() {
     
-    const socket = io('http://localhost:5000')
+    const socket = io(window.location.href)
+    // const socket = io('http://localhost:5000')
     
     socket.on('game_state', (body) => {
         receivedGameObjects = body.gameObjects
