@@ -11,6 +11,8 @@ body {
 }
 
 #game-content canvas {
-    background-color: #fafafa;
-    border: 1px solid #aaa;
+    height: 600px;
+    width: 800px;
+    /* border: 1px solid #aaa;
+    background-color: #fafafa; */
 }

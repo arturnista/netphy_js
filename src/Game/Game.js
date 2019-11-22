@@ -1,7 +1,7 @@
 const io = require('socket.io')
 const _ = require('lodash')
 const Player = require('./Player/Player')
-const Ground = require('./Ground/Ground')
+const Water = require('./Water/Water')
 const planck = require('planck-js')
 
 const generateId = (function() {
@@ -23,6 +23,10 @@ class Game {
         this.gameLoop = this.gameLoop.bind(this)
         this.gameLoopInterval = null
 
+        this.lastFrameTime = 0
+
+        this.tick = 0
+
     }
 
     create(server) {    
@@ -30,14 +34,24 @@ class Game {
         this.connection = io.listen(server)
 
         this.physicsWorld = planck.World({
-            gravity: planck.Vec2(0, -10)
+            gravity: planck.Vec2(0, -25)
         })
         this.physicsStep = 1 / 60
+        this.physicsWorld.on('begin-contact', (contact) => {
+            const fixtureA = contact.getFixtureA()
+            const fixtureB = contact.getFixtureB()
+
+            const objectA = fixtureA && fixtureA.getBody().getUserData()
+            const objectB = fixtureB && fixtureB.getBody().getUserData()
+
+            objectA && objectA.onCollision && objectA.onCollision(objectB, contact)
+            objectB && objectB.onCollision && objectB.onCollision(objectA, contact)
+        })
 
         this.createGameObject(
-            new Ground({
+            new Water({
                 game: this,
-                position: { x: 50, y: 5 },
+                position: { x: 100, y: 10 },
                 size: { x: 100, y: 10 },
             })
         )
@@ -50,12 +64,17 @@ class Game {
                 delete server.sockets[socket.id]
             })
         })    
-
+        
+        let i = 0
         this.connection.on('connection', (socket) => {
-
-            let player = new Player({ socket, game: this })
-            this.createGameObject(player)
-            
+            i += 1
+            let player = new Player({
+                socket,
+                game: this,
+                team: i % 2 ? 'green' : 'red',
+                position: { x: 10, y: 50 }
+            })
+            this.createGameObject(player)  
         })
 
     }
@@ -64,17 +83,20 @@ class Game {
         this.gameObjectsToAdd.push( gameObject )
     }
 
-    removePlayer(player) {
-        this.gameObjectsToRemove.push(player)
+    destroyGameObject(gameObject) {
+        this.gameObjectsToRemove.push( gameObject )
     }
 
     startGame() {
 
-        this.gameLoopInterval = setInterval(this.gameLoop, 10)
+        this.gameLoopInterval = setInterval(this.gameLoop, this.physicsStep * 1000)
 
     }
 
     gameLoop() {
+
+        let deltatime = (new Date() - this.lastFrameTime) / 1000
+        this.lastFrameTime = new Date()
 
         if(this.gameObjectsToAdd.length > 0) {
             this.gameObjects = [
@@ -85,17 +107,28 @@ class Game {
         }
 
         if(this.gameObjectsToRemove.length > 0) {
-            this.gameObjects = this.gameObjects.filter(player => this.gameObjectsToRemove.find(x => x.id === player.id) == null)
+            this.gameObjects = this.gameObjects.filter(object => {
+                if(this.gameObjectsToRemove.find(x => x.id === object.id) != null) {
+                    if(object.physicsBody) {
+                        this.physicsWorld.destroyBody(object.physicsBody)
+                    }
+
+                    return false
+                }
+                return true
+            })
             this.gameObjectsToRemove = []
         }
 
-        this.physicsWorld.step(this.physicsStep)
+        this.physicsWorld.step(this.physicsStep, 10, 8)
 
-        this.gameObjects.forEach(obj => obj.frame())
+        this.gameObjects.forEach(obj => obj.frame(deltatime))
 
         this.connection.emit('game_state', {
+            tick: this.tick,
             gameObjects: this.gameObjects.map(x => x.getNetInfo())
         })
+        this.tick += 1
     }
 
 }

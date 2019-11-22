@@ -32,6 +32,9 @@ server.get('/img/:filename', function(req, res, next) {
 server.get('/js/:filename', function(req, res, next) {
     res.sendFile(`${__dirname}/public/js/${req.params.filename}`)
 })
+server.get('/js/:entity/:filename', function(req, res, next) {
+    res.sendFile(`${__dirname}/public/js/${req.params.entity}/${req.params.filename}`)
+})
 
 const port = process.env.PORT || 5000
 

@@ -1,30 +1,24 @@
 const uuid = require('uuid')
 const planck = require('planck-js')
 
-class Bullet {
+class Ground {
 
-    constructor({ game, position } = {}) {
+    constructor({ game, size, position } = {}) {
 
         this.id = uuid.v4()
 
         this.game = game
         
         this.color = 'black'
-        this.size = {
-            x: 5,
-            y: 10,
-        }
+        this.size = size
 
         this.physicsBody = game.physicsWorld.createBody({
-            type: 'dynamic',
-            bullet: true,
+            type: 'static',
             position: planck.Vec2(position.x, position.y),
         })
         this.physicsBody.createFixture({
             shape: planck.Box(this.size.x, this.size.y, planck.Vec2(0, 0), 0)
         })
-
-        this.physicsBody.linearVelocity = planck.Vec2(10, 0)
 
     }
 
@@ -32,7 +26,7 @@ class Bullet {
         const transform = this.physicsBody.getTransform()
         return {
             id: this.id,
-            type: 'Bullet',
+            type: 'Water',
             position: transform.p,
             angle: this.physicsBody.getAngle(),
             size: this.size,
@@ -46,4 +40,4 @@ class Bullet {
 
 }
 
-module.exports = Bullet
+module.exports = Ground
