@@ -53,23 +53,25 @@ class Player {
     frame() {
         
         if(this.inputs.keyboard['KeyW']) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, 1) )
+            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1) )
             direction.x *= 100;
             direction.y *= 100;
             this.physicsBody.applyForceToCenter(direction)
         } else if(this.inputs.keyboard['KeyS']) {
             const direction = this.physicsBody.getWorldVector( planck.Vec2(0, 1) )
-            direction.x *= -100;
-            direction.y *= -100;
+            direction.x *= 100;
+            direction.y *= 100;
             this.physicsBody.applyForceToCenter(direction)
         }
 
         if(this.inputs.keyboard['KeyD']) {
-            this.physicsBody.setAngularVelocity(10)
+            this.physicsBody.setAngularVelocity(3)
             // this.physicsBody.applyForceToCenter(planck.Vec2(30, 0))
         } else if(this.inputs.keyboard['KeyA']) {
-            this.physicsBody.setAngularVelocity(10)
+            this.physicsBody.setAngularVelocity(-3)
             // this.physicsBody.applyForceToCenter(planck.Vec2(-30, 0))
+        } else {
+            this.physicsBody.setAngularVelocity(0)
         }
 
         if(!this.lastInputs.mouse.isDown && this.inputs.mouse.isDown) {
