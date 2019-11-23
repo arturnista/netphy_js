@@ -29,6 +29,15 @@ server.get('/css/:filename', function(req, res, next) {
 server.get('/img/:filename', function(req, res, next) {
     res.sendFile(`${__dirname}/public/img/${req.params.filename}`)
 })
+server.get('/map/:filename', function(req, res, next) {
+    res.sendFile(`${__dirname}/src/Game/Map/${req.params.filename}`)
+})
+server.get('/vendor/:filename', function(req, res, next) {
+    res.sendFile(`${__dirname}/public/vendor/${req.params.filename}`)
+})
+server.get('/tilesheet_complete.png/', function(req, res, next) {
+    res.sendFile(`${__dirname}/src/Game/Map/tilesheet_complete.png`)
+})
 server.get('/js/:filename', function(req, res, next) {
     res.sendFile(`${__dirname}/public/js/${req.params.filename}`)
 })

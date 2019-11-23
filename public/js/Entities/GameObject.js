@@ -1,5 +1,9 @@
 class GameObject {
 
+    constructor(data) {
+        this.id = data.id
+    }
+
     sync(data) {
         if(!this.sprite) return
 

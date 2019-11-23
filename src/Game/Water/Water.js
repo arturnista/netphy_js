@@ -1,7 +1,7 @@
 const uuid = require('uuid')
 const planck = require('planck-js')
 
-class Ground {
+class Water {
 
     constructor({ game, size, position } = {}) {
 
@@ -40,4 +40,4 @@ class Ground {
 
 }
 
-module.exports = Ground
+module.exports = Water

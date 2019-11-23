@@ -1,7 +1,7 @@
 class Laser extends GameObject {
 
     constructor(data) {
-        super()
+        super(data)
         let spriteName = 'laser_green'
         if(data.team === 'red') spriteName = 'laser_red'
 

@@ -1,7 +1,7 @@
 class Water extends GameObject {
 
     constructor(data) {
-        super()
+        super(data)
         this.sprite = new PIXI.extras.TilingSprite(PIXI.loader.resources['waterTop'].texture, 64, 64)
 
         this.sprite.id = data.id

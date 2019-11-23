@@ -14,7 +14,7 @@ class Player {
         this.team = team
         this.size = { x: 3, y: 3 }
 
-        this.speed = 5000
+        this.force = 7000
         this.rotateSpeed = 300
         
         this.fireAngle = 0
@@ -78,10 +78,10 @@ class Player {
     frame(deltatime) {
 
         if(this.keyIsHold('KeyW')) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * this.speed * deltatime) )
+            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * this.force * deltatime) )
             this.physicsBody.applyForceToCenter(direction)
         } else if(this.keyIsHold('KeyS')) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, 1 * this.speed * deltatime) )
+            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, 1 * this.force * deltatime) )
             this.physicsBody.applyForceToCenter(direction)
         }
 
@@ -160,7 +160,7 @@ class Player {
     }
 
     onCollision(collision, contact) {
-        console.log(contact.getManifold())
+        // console.log(contact.getManifold())
         // const collisionTeam = _.get(collision, 'team', false)
         // if(collisionTeam && collisionTeam != this.team) {
         //     collision.dealDamage && collision.dealDamage(this.damage)

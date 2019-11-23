@@ -2,6 +2,7 @@ const io = require('socket.io')
 const _ = require('lodash')
 const Player = require('./Player/Player')
 const Water = require('./Water/Water')
+const Map = require('./Map/Map')
 const planck = require('planck-js')
 
 const generateId = (function() {
@@ -36,7 +37,11 @@ class Game {
         this.physicsWorld = planck.World({
             gravity: planck.Vec2(0, -25)
         })
+        
         this.physicsStep = 1 / 60
+        this.velocityIterations = 8
+        this.positionIterations = 3
+        
         this.physicsWorld.on('begin-contact', (contact) => {
             const fixtureA = contact.getFixtureA()
             const fixtureB = contact.getFixtureB()
@@ -47,14 +52,6 @@ class Game {
             objectA && objectA.onCollision && objectA.onCollision(objectB, contact)
             objectB && objectB.onCollision && objectB.onCollision(objectA, contact)
         })
-
-        this.createGameObject(
-            new Water({
-                game: this,
-                position: { x: 100, y: 10 },
-                size: { x: 100, y: 10 },
-            })
-        )
 
         server.on('connection', function (socket) {
             if(!server.sockets) server.sockets = {}
@@ -75,6 +72,10 @@ class Game {
                 position: { x: 10, y: 50 }
             })
             this.createGameObject(player)  
+            socket.emit('map_created', {
+                tileSize: this.map.tileSize,
+                tiles: this.map.tiles
+            })
         })
 
     }
@@ -89,6 +90,7 @@ class Game {
 
     startGame() {
 
+        this.map = new Map({ game: this })
         this.gameLoopInterval = setInterval(this.gameLoop, this.physicsStep * 1000)
 
     }
@@ -120,7 +122,7 @@ class Game {
             this.gameObjectsToRemove = []
         }
 
-        this.physicsWorld.step(this.physicsStep, 10, 8)
+        this.physicsWorld.step(this.physicsStep, this.velocityIterations, this.positionIterations)
 
         this.gameObjects.forEach(obj => obj.frame(deltatime))
 
