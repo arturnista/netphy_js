@@ -85,15 +85,14 @@ class Player {
             angle,
             size: this.size,
             team: this.team,
-            isAlive: this.isAlive
+            isAlive: this.isAlive,
+            health: this.health,
         }
     }
 
     respawn() {
         this.isAlive = true
         this.health = this.maxHealth
-        const position = this.respawnArea.getRandomPosition()
-        
         this.createPhysicsBody()
     }
 

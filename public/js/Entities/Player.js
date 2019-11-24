@@ -42,6 +42,13 @@ class Player extends GameObject {
         }
         this.isAlive = data.isAlive
 
+        if(this.health != data.health) {
+            this.positionText.text = data.health
+        }
+        this.health = data.health
+
+        this.positionText.text
+
     }
 
     destroy() {
