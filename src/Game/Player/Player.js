@@ -1,10 +1,12 @@
 const uuid = require('uuid')
+const _ = require('lodash')
 const planck = require('planck-js')
 const Laser = require('../Laser/Laser')
+const GameObjectsMasks = require('../GameObjectsMasks')
 
 class Player {
 
-    constructor({ socket, game, team, position } = {}) {
+    constructor({ socket, game, team, respawn } = {}) {
 
         this.id = uuid.v4()
 
@@ -12,9 +14,9 @@ class Player {
         this.socket = socket
         
         this.team = team
-        this.size = { x: 3, y: 3 }
+        this.size = { x: 10, y: 10 }
 
-        this.force = 7000
+        this.force = 8500
         this.rotateSpeed = 300
         
         this.fireAngle = 0
@@ -26,19 +28,17 @@ class Player {
         this.maxHealth = 100
         this.health = this.maxHealth
 
+        this.isAlive = true
+        this.killNextFrame = false
+        this.respawnNextFrame = false
+
         this.useMouseController = false
 
         this.inputs = { keyboard: {}, mouse: {} }
         this.lastInputs = { keyboard: {}, mouse: {} }
-
-        this.physicsBody = game.physicsWorld.createBody({
-            type: 'dynamic',
-            position: planck.Vec2(position.x, position.y),
-        })
-        this.physicsBody.createFixture({
-            shape: planck.Box(this.size.y, this.size.x, planck.Vec2(0, 0), 0)
-        })
-        this.physicsBody.setUserData(this)
+        
+        this.respawnArea = respawn
+        this.createPhysicsBody()
 
         this.socket.emit('player_connect', this.getNetInfo())
 
@@ -55,16 +55,46 @@ class Player {
 
     }
 
+    createPhysicsBody() {
+
+        const position = this.respawnArea.getRandomPosition()
+        this.physicsBody = this.game.physicsWorld.createBody({
+            type: 'dynamic',
+            position: planck.Vec2(position.x, position.y),
+        })
+        this.physicsBody.setUserData(this)
+        this.physicsBody.createFixture({
+            shape: planck.Box(this.size.y, this.size.x, planck.Vec2(0, 0), 0),
+            filterCategoryBits: this.team == 'red' ? GameObjectsMasks.RED_PLAYER : GameObjectsMasks.GREEN_PLAYER,
+            filterMaskBits: GameObjectsMasks.EVERYTHING,
+        })
+
+    }
+
     getNetInfo() {
-        const transform = this.physicsBody.getTransform()
+        let position = { x:0, y:0 }
+        let angle = 0
+        if(this.physicsBody) {
+            position = this.physicsBody.getTransform().p
+            angle = this.physicsBody.getAngle()
+        }
         return {
             id: this.id,
             type: 'Player',
-            position: transform.p,
-            angle: this.physicsBody.getAngle(),
+            position,
+            angle,
             size: this.size,
-            team: this.team
+            team: this.team,
+            isAlive: this.isAlive
         }
+    }
+
+    respawn() {
+        this.isAlive = true
+        this.health = this.maxHealth
+        const position = this.respawnArea.getRandomPosition()
+        
+        this.createPhysicsBody()
     }
 
     keyIsHold(key) {
@@ -76,6 +106,17 @@ class Player {
     }
 
     frame(deltatime) {
+
+        if(this.killNextFrame) {
+            this.killNextFrame = false
+            this.kill()
+        }
+        if(this.respawnNextFrame) {
+            this.respawnNextFrame = false
+            this.respawn()
+        }
+
+        if(!this.isAlive) return
 
         if(this.keyIsHold('KeyW')) {
             const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * this.force * deltatime) )
@@ -138,8 +179,8 @@ class Player {
                 this.game.createGameObject(new Laser({
                     game: this.game,
                     position: planck.Vec2(
-                        p.x + this.fireDirection.x,
-                        p.y + this.fireDirection.y,
+                        p.x + (this.fireDirection.x * this.size.x * 2),
+                        p.y + (this.fireDirection.y * this.size.y * 2),
                     ),
                     angle: this.fireAngle,
                     team: this.team
@@ -148,18 +189,24 @@ class Player {
 
         }
 
+    }
 
+    kill() {
+        this.game.physicsWorld.destroyBody(this.physicsBody)
 
+        this.isAlive = false
+
+        setTimeout(() => this.respawnNextFrame = true, 5000)
     }
 
     dealDamage(damage) {
         this.health -= damage
         if(this.health <= 0) {
-            this.game.destroyGameObject(this)
+            this.killNextFrame = true
         }
     }
 
-    onCollision(collision, contact) {
+    onBeginContact(collision, contact) {
         // console.log(contact.getManifold())
         // const collisionTeam = _.get(collision, 'team', false)
         // if(collisionTeam && collisionTeam != this.team) {

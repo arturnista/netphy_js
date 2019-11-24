@@ -1,6 +1,7 @@
 const uuid = require('uuid')
 const _ = require('lodash')
 const planck = require('planck-js')
+const GameObjectsMasks = require('../GameObjectsMasks')
 
 class Laser {
 
@@ -14,18 +15,21 @@ class Laser {
         this.speed = 500
         this.team = team
         this.size = {
-            x: 1,
-            y: 2,
+            x: 3,
+            y: 6,
         }
 
         this.physicsBody = game.physicsWorld.createBody({
-            type: 'kinematic',
+            type: 'dynamic',
+            gravityScale: 0,
             bullet: true,
             position: planck.Vec2(position.x, position.y),
         })
         this.physicsBody.createFixture({
             isSensor: true,
-            shape: planck.Box(this.size.x, this.size.y, planck.Vec2(0, 0), 0)
+            shape: planck.Box(this.size.x, this.size.y, planck.Vec2(0, 0), 0),
+            filterCategoryBits: GameObjectsMasks.LASER,
+            filterMaskBits: GameObjectsMasks.EVERYTHING ^ GameObjectsMasks.LASER ^ (team === 'red' ? GameObjectsMasks.RED_PLAYER : GameObjectsMasks.GREEN_PLAYER),
         })
         this.physicsBody.setAngle(angle)
         this.physicsBody.setUserData(this)
@@ -50,12 +54,12 @@ class Laser {
         
     }
 
-    onCollision(collision, contact) {
+    onBeginContact(collision, contact) {
         const collisionTeam = _.get(collision, 'team', false)
         if(collisionTeam && collisionTeam != this.team) {
             collision.dealDamage && collision.dealDamage(this.damage)
-            this.game.destroyGameObject(this)
         }
+        this.game.destroyGameObject(this)
     }
 
 }

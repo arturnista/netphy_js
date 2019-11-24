@@ -2,11 +2,14 @@ class GameObject {
 
     constructor(data) {
         this.id = data.id
+        this.type = data.type
     }
 
     sync(data) {
         if(!this.sprite) return
 
+        this.type = data.type
+        
         this.sprite.x = data.position.x
         this.sprite.y = data.position.y
         this.sprite.rotation = data.angle

@@ -4,7 +4,6 @@ class MapSprite extends GameObject {
         super(data)
         const tileId = (data.id).toString()
         const spriteName = 'tile' + (tileId.length == 1 ? '00' + tileId : tileId.length == 2 ? '0' + tileId : tileId)
-        console.log(tileId)
         this.sprite = new PIXI.Sprite(PIXI.loader.resources[spriteName].texture)
         
         const realSize = size * 2

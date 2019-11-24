@@ -37,6 +37,15 @@ class Player extends GameObject {
         this.sprite.x = data.position.x
         this.sprite.y = data.position.y
 
+        if(this.isAlive != data.isAlive) {
+            this.sprite.visible = data.isAlive
+        }
+        this.isAlive = data.isAlive
+
+    }
+
+    destroy() {
+        super.destroy()
     }
 
 }

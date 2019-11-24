@@ -2,6 +2,7 @@ const uuid = require('uuid')
 const _ = require('lodash')
 const planck = require('planck-js')
 const arena = require('./arena')
+const GameObjectsMasks = require('../GameObjectsMasks')
 
 class Map {
 
@@ -14,7 +15,8 @@ class Map {
         this.halfTileSize = this.tileSize / 2
 
         this.game = game
-        this.layers = arena.layers.map(({ name, data, encoding, height, width }) => {
+        const tileLayer = arena.layers.filter(x => x.type === 'tilelayer')
+        this.layers = tileLayer.map(({ name, data, encoding, height, width }) => {
             let dataBuffered = Buffer.from(data, encoding)
             let x = -1
             let y = 0
@@ -47,7 +49,7 @@ class Map {
             ]
         }, [])
 
-        this.data = this.tiles.filter(x => x.type === 'Ground')
+        this.data = this.tiles.filter(x => x.type !== 'Walkable')
         this.physicsBodies = this.data.map(tile => {
             const physicsBody = game.physicsWorld.createBody({
                 type: 'static',
@@ -56,11 +58,59 @@ class Map {
                     tile.position.y
                 ),
             })
+
+            let filterCategoryBits
+            let filterMaskBits
+            switch (tile.type) {
+                case 'RedBlock':
+                    filterCategoryBits = GameObjectsMasks.RED_BLOCK
+                    filterMaskBits = GameObjectsMasks.EVERYTHING ^ GameObjectsMasks.RED_PLAYER
+                    break
+                case 'GreenBlock':
+                    filterCategoryBits = GameObjectsMasks.GREEN_BLOCK
+                    filterMaskBits = GameObjectsMasks.EVERYTHING ^ GameObjectsMasks.GREEN_PLAYER
+                    break
+                default:
+                    filterCategoryBits = GameObjectsMasks.GROUND
+                    filterMaskBits = GameObjectsMasks.EVERYTHING
+            }
             physicsBody.createFixture({
-                shape: planck.Box(this.tileSize, this.tileSize, planck.Vec2(0, 0), 0)
+                shape: planck.Box(this.tileSize, this.tileSize, planck.Vec2(0, 0), 0),
+                filterCategoryBits,
+                filterMaskBits,
             })
 
             return physicsBody
+        })
+
+        const objects = arena.layers.filter(x => x.type === 'objectgroup')[0]
+        this.greenSpawn = {}
+        this.redSpawn = {}
+        objects.objects.forEach(obj => {
+
+            const spawnObject = {
+                name: obj.name,
+                x: obj.x / 64,
+                y: obj.y / 64,
+                height: obj.height / 64,
+                width: obj.width / 64,
+                tileSize: this.doubleTileSize,
+                getRandomPosition: function() {
+                    return {
+                        x: (this.x + (Math.random() * (this.width - 1))) * this.tileSize,
+                        y: (this.y + (Math.random() * (this.height - 1))) * this.tileSize,
+                    }
+                }
+            }
+
+            switch (obj.name) {
+                case 'GreenSpawn':
+                    this.greenSpawn = spawnObject
+                    break
+                case 'RedSpawn':
+                    this.redSpawn = spawnObject
+                    break
+            }
         })
 
     }

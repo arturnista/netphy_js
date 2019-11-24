@@ -1,7 +1,6 @@
 const io = require('socket.io')
 const _ = require('lodash')
 const Player = require('./Player/Player')
-const Water = require('./Water/Water')
 const Map = require('./Map/Map')
 const planck = require('planck-js')
 
@@ -49,8 +48,19 @@ class Game {
             const objectA = fixtureA && fixtureA.getBody().getUserData()
             const objectB = fixtureB && fixtureB.getBody().getUserData()
 
-            objectA && objectA.onCollision && objectA.onCollision(objectB, contact)
-            objectB && objectB.onCollision && objectB.onCollision(objectA, contact)
+            objectA && objectA.onBeginContact && objectA.onBeginContact(objectB, contact)
+            objectB && objectB.onBeginContact && objectB.onBeginContact(objectA, contact)
+        })
+
+        this.physicsWorld.on('end-contact', (contact) => {
+            const fixtureA = contact.getFixtureA()
+            const fixtureB = contact.getFixtureB()
+
+            const objectA = fixtureA && fixtureA.getBody().getUserData()
+            const objectB = fixtureB && fixtureB.getBody().getUserData()
+
+            objectA && objectA.onEndContact && objectA.onEndContact(objectB, contact)
+            objectB && objectB.onEndContact && objectB.onEndContact(objectA, contact)
         })
 
         server.on('connection', function (socket) {
@@ -65,11 +75,14 @@ class Game {
         let i = 0
         this.connection.on('connection', (socket) => {
             i += 1
+            let team = i % 2 ? 'green' : 'red'
+
+            const respawn = team === 'green' ? this.map.greenSpawn : this.map.redSpawn
             let player = new Player({
                 socket,
                 game: this,
-                team: i % 2 ? 'green' : 'red',
-                position: { x: 10, y: 50 }
+                team,
+                respawn
             })
             this.createGameObject(player)  
             socket.emit('map_created', {

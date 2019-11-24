@@ -23,12 +23,6 @@ window.onload = function() {
     
         app.stage.addChild(camera.container)
 
-        // let tileMap = new PIXI.extras.TiledMap('arena')
-        // tileMap.position.set(-100, 0)
-        // tileMap.pivot.set(.5, .5)
-        // tileMap.scale.set(.1, -.1)
-        // camera.addChild(tileMap)
-
         app.renderer.render(app.stage)
         app.ticker.add(gameLoop)
 
@@ -52,6 +46,13 @@ function connectSocket() {
             }
 
             if(objectToUpdate) {
+                if(object.type == 'Player' && objectToUpdate.isAlive && !object.isAlive) {
+                    let explosion = createPlayerExplosion()
+                    explosion.x = object.position.x
+                    explosion.y = object.position.y
+                    camera.addChild(explosion)
+                }
+
                 objectToUpdate.sync(object)
                 objectToUpdate._tick = body.tick
             } else {
@@ -78,9 +79,19 @@ function connectSocket() {
             }
         }
 
-        gameObjects = gameObjects.filter(x => {
-            if(x._tick != body.tick) {
-                x.destroy()
+        gameObjects = gameObjects.filter(object => {
+            if(object._tick != body.tick) {
+                let explosion
+                if(object.type === 'Player') {
+                    explosion = createPlayerExplosion()
+                } else if(object.type === 'Laser') {
+                    explosion = createLaserExplosion()
+                }
+                explosion.x = object.sprite.x
+                explosion.y = object.sprite.y
+                camera.addChild(explosion)
+                
+                object.destroy()
                 return false
             }
             return true
@@ -397,6 +408,22 @@ function createApp() {
             .add('tile261', '/img/tile261.png')
             .add('tile262', '/img/tile262.png')
             .add('tile263', '/img/tile263.png')
+            .add('explosion_00', '/img/explosion_00.png')
+            .add('explosion_01', '/img/explosion_01.png')
+            .add('explosion_02', '/img/explosion_02.png')
+            .add('explosion_03', '/img/explosion_03.png')
+            .add('explosion_04', '/img/explosion_04.png')
+            .add('explosion_05', '/img/explosion_05.png')
+            .add('laser_explosion_00', '/img/spell_explosion_00.png')
+            .add('laser_explosion_01', '/img/spell_explosion_01.png')
+            .add('laser_explosion_02', '/img/spell_explosion_02.png')
+            .add('laser_explosion_03', '/img/spell_explosion_03.png')
+            .add('laser_explosion_04', '/img/spell_explosion_04.png')
+            .add('laser_explosion_05', '/img/spell_explosion_05.png')
+            .add('laser_explosion_06', '/img/spell_explosion_06.png')
+            .add('laser_explosion_07', '/img/spell_explosion_07.png')
+            .add('laser_explosion_08', '/img/spell_explosion_08.png')
+            .add('laser_explosion_09', '/img/spell_explosion_09.png')
             .load(() => {
                 resolve(app)
             })
