@@ -3,6 +3,7 @@ const _ = require('lodash')
 const Player = require('./Player/Player')
 const Map = require('./Map/Map')
 const planck = require('planck-js')
+const Physics = require('./Physics')
 
 const generateId = (function() {
     let socketId = 0
@@ -15,13 +16,16 @@ class Game {
         
         this.connection = null
         this.gameObjects = []
-        this.physicsWorld = null
+        this.physics = null
 
         this.gameObjectsToAdd = []
         this.gameObjectsToRemove = []
 
         this.gameLoop = this.gameLoop.bind(this)
         this.gameLoopInterval = null
+        
+        this.emitGameState = this.emitGameState.bind(this)
+        this.emitGameStateInterval = null
 
         this.lastFrameTime = 0
 
@@ -33,35 +37,7 @@ class Game {
         console.log(`SocketIO :: Room created :: ${server.address().port}`)
         this.connection = io.listen(server)
 
-        this.physicsWorld = planck.World({
-            gravity: planck.Vec2(0, -25)
-        })
-        
-        this.physicsStep = 1 / 60
-        this.velocityIterations = 8
-        this.positionIterations = 3
-        
-        this.physicsWorld.on('begin-contact', (contact) => {
-            const fixtureA = contact.getFixtureA()
-            const fixtureB = contact.getFixtureB()
-
-            const objectA = fixtureA && fixtureA.getBody().getUserData()
-            const objectB = fixtureB && fixtureB.getBody().getUserData()
-
-            objectA && objectA.onBeginContact && objectA.onBeginContact(objectB, contact)
-            objectB && objectB.onBeginContact && objectB.onBeginContact(objectA, contact)
-        })
-
-        this.physicsWorld.on('end-contact', (contact) => {
-            const fixtureA = contact.getFixtureA()
-            const fixtureB = contact.getFixtureB()
-
-            const objectA = fixtureA && fixtureA.getBody().getUserData()
-            const objectB = fixtureB && fixtureB.getBody().getUserData()
-
-            objectA && objectA.onEndContact && objectA.onEndContact(objectB, contact)
-            objectB && objectB.onEndContact && objectB.onEndContact(objectA, contact)
-        })
+        this.physics = new Physics()
 
         server.on('connection', function (socket) {
             if(!server.sockets) server.sockets = {}
@@ -104,7 +80,8 @@ class Game {
     startGame() {
 
         this.map = new Map({ game: this })
-        this.gameLoopInterval = setInterval(this.gameLoop, this.physicsStep * 1000)
+        this.gameLoopInterval = setInterval(this.gameLoop, 1)
+        this.emitGameStateInterval = setInterval(this.emitGameState, 10)
 
     }
 
@@ -125,7 +102,7 @@ class Game {
             this.gameObjects = this.gameObjects.filter(object => {
                 if(this.gameObjectsToRemove.find(x => x.id === object.id) != null) {
                     if(object.physicsBody) {
-                        this.physicsWorld.destroyBody(object.physicsBody)
+                        this.physics.destroyBody(object.physicsBody)
                     }
 
                     return false
@@ -135,10 +112,12 @@ class Game {
             this.gameObjectsToRemove = []
         }
 
-        this.physicsWorld.step(this.physicsStep, this.velocityIterations, this.positionIterations)
+        this.physics.step(deltatime)
 
         this.gameObjects.forEach(obj => obj.frame(deltatime))
+    }
 
+    emitGameState() {
         this.connection.emit('game_state', {
             tick: this.tick,
             gameObjects: this.gameObjects.map(x => x.getNetInfo())

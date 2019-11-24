@@ -17,7 +17,7 @@ class Player {
         this.size = { x: 5, y: 5 }
 
         this.speed = 0
-        this.maxSpeed = 85
+        this.maxSpeed = 10
         this.rotateSpeed = 300
         this.acceleration = this.maxSpeed * 2
         
@@ -60,7 +60,7 @@ class Player {
     createPhysicsBody() {
 
         const position = this.respawnArea.getRandomPosition()
-        this.physicsBody = this.game.physicsWorld.createBody({
+        this.physicsBody = this.game.physics.createBody({
             type: 'dynamic',
             position: planck.Vec2(position.x, position.y),
         })
@@ -195,7 +195,7 @@ class Player {
     }
 
     kill() {
-        this.game.physicsWorld.destroyBody(this.physicsBody)
+        this.game.physics.destroyBody(this.physicsBody)
 
         this.isAlive = false
 

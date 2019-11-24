@@ -51,7 +51,7 @@ class Map {
 
         this.data = this.tiles.filter(x => x.type !== 'Walkable')
         this.physicsBodies = this.data.map(tile => {
-            const physicsBody = game.physicsWorld.createBody({
+            const physicsBody = game.physics.createBody({
                 type: 'static',
                 position: planck.Vec2(
                     tile.position.x,

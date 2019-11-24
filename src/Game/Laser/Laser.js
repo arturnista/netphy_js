@@ -12,14 +12,14 @@ class Laser {
         this.game = game
         
         this.damage = 30
-        this.speed = 500
+        this.speed = 30
         this.team = team
         this.size = {
             x: 1,
             y: 2,
         }
 
-        this.physicsBody = game.physicsWorld.createBody({
+        this.physicsBody = game.physics.createBody({
             type: 'dynamic',
             gravityScale: 0,
             bullet: true,
