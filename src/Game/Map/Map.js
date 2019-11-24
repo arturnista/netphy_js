@@ -10,7 +10,7 @@ class Map {
 
         this.id = uuid.v4()
 
-        this.tileSize = 5
+        this.tileSize = 2
         this.doubleTileSize = this.tileSize * 2
         this.halfTileSize = this.tileSize / 2
 

@@ -14,10 +14,12 @@ class Player {
         this.socket = socket
         
         this.team = team
-        this.size = { x: 10, y: 10 }
+        this.size = { x: 5, y: 5 }
 
-        this.force = 8500
+        this.speed = 0
+        this.maxSpeed = 85
         this.rotateSpeed = 300
+        this.acceleration = this.maxSpeed * 2
         
         this.fireAngle = 0
         this.fireDirection = planck.Vec2.zero
@@ -64,7 +66,7 @@ class Player {
         })
         this.physicsBody.setUserData(this)
         this.physicsBody.createFixture({
-            shape: planck.Box(this.size.y, this.size.x, planck.Vec2(0, 0), 0),
+            shape: planck.Circle(this.size.x, planck.Vec2(0, 0), 0),
             filterCategoryBits: this.team == 'red' ? GameObjectsMasks.RED_PLAYER : GameObjectsMasks.GREEN_PLAYER,
             filterMaskBits: GameObjectsMasks.EVERYTHING,
         })
@@ -118,16 +120,18 @@ class Player {
         if(!this.isAlive) return
 
         if(this.keyIsHold('KeyW')) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * this.force * deltatime) )
-            this.physicsBody.applyForceToCenter(direction)
-        } else if(this.keyIsHold('KeyS')) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, 1 * this.force * deltatime) )
-            this.physicsBody.applyForceToCenter(direction)
-        }
+            this.speed += this.acceleration * deltatime
+            if(this.speed > this.maxSpeed) this.speed = this.maxSpeed
 
-        if(this.keyIsDown('ShiftLeft') || this.keyIsDown('ShiftRight')) {
-            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * 100000) )
-            this.physicsBody.applyForceToCenter(direction)
+            const direction = this.physicsBody.getWorldVector( planck.Vec2(0, -1 * this.speed) )
+            this.physicsBody.setLinearVelocity(direction)
+        } else if(this.keyIsHold('KeyS')) {
+            this.speed -= this.acceleration * deltatime
+            if(this.speed < 0) this.speed = 0
+        } else if(this.speed > 0) {
+            this.speed -= this.acceleration * deltatime
+        } else {
+            this.speed = 0;
         }
 
         if(this.keyIsHold('KeyD')) {

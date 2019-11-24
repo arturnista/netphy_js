@@ -130,7 +130,7 @@ function createApp() {
         antialias: false,
         transparent: false,
         resolution: 5,
-        backgroundColor: 0x061639
+        backgroundColor: 0x212121
     })
     document.getElementById("game-content").appendChild(app.view)
 

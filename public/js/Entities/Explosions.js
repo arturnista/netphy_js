@@ -3,8 +3,10 @@ function createPlayerExplosion({ autoplay = true } = { autoplay: true }) {
     let textureArray = images.map(x => PIXI.loader.resources[x].texture)
 
     const explosion = new window.PIXI.extras.AnimatedSprite(textureArray)
+    explosion.width = 20
+    explosion.height = 20
     explosion.anchor.set(.5, .5)
-    explosion.animationSpeed = .4
+    explosion.animationSpeed = .1
     explosion.loop = false
     explosion.onComplete = () => {
         explosion.visible = false

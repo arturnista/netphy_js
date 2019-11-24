@@ -15,8 +15,8 @@ class Laser {
         this.speed = 500
         this.team = team
         this.size = {
-            x: 3,
-            y: 6,
+            x: 1,
+            y: 2,
         }
 
         this.physicsBody = game.physicsWorld.createBody({
