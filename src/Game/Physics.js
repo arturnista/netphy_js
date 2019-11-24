@@ -6,7 +6,7 @@ class Physics {
     constructor() {
 
         this.world = planck.World({
-            gravity: planck.Vec2(0, -10)
+            gravity: planck.Vec2(0, -1)
         })
         
         this.physicsStep = 1 / 60

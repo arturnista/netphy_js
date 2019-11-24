@@ -12,7 +12,7 @@ class Laser {
         this.game = game
         
         this.damage = 30
-        this.speed = 30
+        this.speed = 15
         this.team = team
         this.size = {
             x: 1,
