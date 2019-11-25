@@ -7,6 +7,8 @@ class Player extends GameObject {
 
         this.sprite = new window.PIXI.Container()
 
+        this.team = data.team
+
         this.spriteReal = new PIXI.Sprite(PIXI.loader.resources[spriteName].texture)
         this.spriteReal.anchor.set(.5, .5)
         this.spriteReal.width = data.size.x * 2
@@ -29,6 +31,12 @@ class Player extends GameObject {
     }
 
     sync(data) {
+
+        if(this.team != data.team) {
+            let spriteName = 'player_green'
+            if(data.team === 'red') spriteName = 'player_red'
+            this.spriteReal.texture = PIXI.loader.resources[spriteName].texture
+        }
 
         this.spriteReal.width = data.size.x * 2
         this.spriteReal.height = data.size.y * 2

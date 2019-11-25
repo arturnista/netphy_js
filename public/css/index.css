@@ -17,13 +17,14 @@ body {
     background-color: #fafafa; */
 }
 
-.game-score-container {
+.wrapper-container {
+    margin-bottom: 2em;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.game-score {
+.container {
     width: 800px;
 
     display: flex;
@@ -45,4 +46,45 @@ body {
 .team-lifes {
     color: #212121;
     margin: 0 2em;
+}
+
+.modal {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, .5);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fafafa;
+    padding: 1em;
+}
+
+.modal-content p {
+    color: #212121;
+    font-size: 2em;
+    text-align: center;
+}
+
+#final-game-modal {
+    display: none;
+}
+
+#final-game-winning-team {
+    font-size: 2em;
+    text-transform: uppercase;
+}
+
+.red {
+    color: red !important;
+}
+
+.green {
+    color: green !important;
 }

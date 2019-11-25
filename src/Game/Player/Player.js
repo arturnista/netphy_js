@@ -7,18 +7,18 @@ const MathUtils = require('../../Utils/Math')
 
 class Player {
 
-    constructor({ socket, game, team, respawn } = {}) {
+    constructor({ socket, game } = {}) {
 
         this.id = uuid.v4()
 
         this.game = game
         this.socket = socket
         
-        this.team = team
-        this.size = { x: 5, y: 5 }
+        this.team = 'none'
+        this.size = { x: 7, y: 7 }
 
         this.speed = 0
-        this.maxSpeed = 10
+        this.maxSpeed = 13
         this.rotateSpeedMoving = 200
         this.rotateSpeed = 300
         this.acceleration = this.maxSpeed * 2
@@ -42,16 +42,11 @@ class Player {
 
         this.inputs = { keyboard: {}, mouse: {} }
         this.lastInputs = { keyboard: {}, mouse: {} }
-        
-        this.respawnArea = respawn
-        this.createPhysicsBody()
-
-        this.socket.emit('player_connect', this.getNetInfo())
 
         console.log(`SocketIO :: Player connected :: ${this.id}`)
         this.socket.on('disconnect', () => {
             console.log(`SocketIO :: Player disconnected :: ${this.id}`)
-            this.game.destroyGameObject(this)
+            this.game.playerDisconnect(this)
         })
 
         this.socket.on('player_input', (body) => {
@@ -59,6 +54,18 @@ class Player {
             this.inputs = body
         })
 
+        this.socket.on('player_game_start', (body) => {
+            console.log('aqui?')
+            this.game.startGame()
+        })
+
+    }
+
+    start(respawn) {
+        this.respawnArea = respawn
+        
+        this.respawn()
+        this.socket.emit('player_connect', this.getNetInfo())
     }
 
     createPhysicsBody() {

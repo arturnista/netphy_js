@@ -13,7 +13,7 @@ class Camera {
         this.halfHeight = this.height / 2
         this.halfWidth = this.width / 2
 
-        this.zoom = 2
+        this.zoom = .5
 
         this.container.position.x = 0
         this.container.position.y = 0

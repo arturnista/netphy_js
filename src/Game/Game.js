@@ -10,6 +10,11 @@ const generateId = (function() {
     return function() { return socketId++ }
 })()
 
+const getTeam = (function() {
+    let i = 0
+    return function() { return i++ % 2 ? 'red' : 'green' }
+})()
+
 class Game {
 
     constructor() {
@@ -17,6 +22,7 @@ class Game {
         this.connection = null
         this.gameObjects = []
         this.physics = null
+        this.lastTeam = 'red'
 
         this.gameObjectsToAdd = []
         this.gameObjectsToRemove = []
@@ -28,21 +34,22 @@ class Game {
         this.emitGameStateInterval = null
 
         this.lastFrameTime = 0
+        this.gameIsRunning = false
 
         this.tick = 0
+        this.players = []
 
         this.gameScore = {
             red: 0,
             green: 0
         }
+        this.killsToWin = 3
 
     }
 
     create(server) {    
         console.log(`SocketIO :: Room created :: ${server.address().port}`)
         this.connection = io.listen(server)
-
-        this.physics = new Physics()
 
         server.on('connection', function (socket) {
             if(!server.sockets) server.sockets = {}
@@ -53,23 +60,24 @@ class Game {
             })
         })    
         
-        let i = 0
         this.connection.on('connection', (socket) => {
-            i += 1
-            let team = i % 2 ? 'green' : 'red'
-
-            const respawn = team === 'green' ? this.map.greenSpawn : this.map.redSpawn
             let player = new Player({
                 socket,
-                game: this,
-                team,
-                respawn
+                game: this
             })
+            this.players.push(player)
+
             this.createGameObject(player)  
-            socket.emit('map_created', {
-                tileSize: this.map.tileSize,
-                tiles: this.map.tiles
-            })
+
+            if(this.gameIsRunning) {
+                socket.emit('game_start', {
+                    map: {
+                        tileSize: this.map.tileSize,
+                        tiles: this.map.tiles
+                    }
+                })
+                this.startPlayer(player)
+            }
         })
 
     }
@@ -78,16 +86,77 @@ class Game {
         this.gameObjectsToAdd.push( gameObject )
     }
 
+    playerDisconnect(player) {
+        this.players = this.players.filter(x => x.id !== player.id)
+        if(this.players.length == 0) this.endGame()
+        this.gameObjectsToRemove.push( player )
+    }
+
     destroyGameObject(gameObject) {
         this.gameObjectsToRemove.push( gameObject )
     }
 
+    startPlayer(player) {
+        const team = getTeam()
+        player.team = team
+        const respawn = team === 'green' ? this.map.greenSpawn : this.map.redSpawn
+        player.start(respawn)
+    }
+
     startGame() {
 
+        if(this.gameIsRunning) return
+
+        this.gameIsRunning = true
+
+        this.physics = new Physics()
+
         this.map = new Map({ game: this })
+
+        this.players.forEach(this.startPlayer.bind(this))
+
+        this.lastFrameTime = 0
+        this.tick = 0
+
+        this.gameScore = {
+            red: 0,
+            green: 0
+        }
+
         this.gameLoopInterval = setInterval(this.gameLoop, 1)
         this.emitGameStateInterval = setInterval(this.emitGameState, 10)
 
+        this.connection.emit('game_start', {
+            map: {
+                tileSize: this.map.tileSize,
+                tiles: this.map.tiles
+            }
+        })
+
+    }
+
+    endGame() {
+
+        this.gameIsRunning = false
+
+        clearInterval(this.gameLoopInterval)
+        this.gameLoopInterval = null
+
+        clearInterval(this.emitGameStateInterval)
+        this.emitGameStateInterval = null
+
+        const winningTeam = this.gameScore.red > this.gameScore.green ? 'red' : 'green'
+
+        this.connection.emit('game_end', {
+            winningTeam,
+            gameScore: this.gameScore
+        })
+
+        this.physics = null
+        this.gameObjects = []
+        this.players.forEach(player => {
+            this.createGameObject(player)  
+        })
     }
 
     gameLoop() {
@@ -134,10 +203,11 @@ class Game {
     playerDeath(player) {
         if(player.team == 'red') {
             this.gameScore.green += 1
+            if(this.gameScore.green >= this.killsToWin) this.endGame()
         } else if(player.team == 'green') {
             this.gameScore.red += 1
+            if(this.gameScore.red >= this.killsToWin) this.endGame()
         }
-        console.log(this.gameScore)
     }
 
 }

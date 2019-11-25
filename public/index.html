@@ -28,8 +28,13 @@
     <div id="game-content">
         <!-- <canvas id="game-canvas" width="800" height="600"></canvas> -->
     </div>
-    <div class="game-score-container">
-        <div class="game-score">
+    <div id="pre-game-container" class="wrapper-container">
+        <div class="container">
+            <button id="start-game-button">Start game</button>
+        </div>
+    </div>
+    <div class="wrapper-container">
+        <div class="container">
             <div class="game-team-score">
                 <img src='/img/playerLife_green.png' class="team-icon"/>
                 <p id="green-lifes" class="team-lifes">3x</p>
@@ -38,6 +43,19 @@
                 <p id="red-lifes" class="team-lifes">2x</p>
                 <img src='/img/playerLife_red.png' class="team-icon"/>
             </div>
+        </div>
+    </div>
+
+    <div id="loading-modal" class="modal">
+        <div class="modal-content">
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <div id="final-game-modal" class="modal">
+        <div class="modal-content">
+            <p>WINNING TEAM</p>
+            <p id="final-game-winning-team"></p>
         </div>
     </div>
 </body>

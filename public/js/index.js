@@ -18,15 +18,19 @@ let gameScore = {
 let greenScoreText = null
 let redScoreText = null
 
+let inputInterval = null
+
 window.onload = function() {
     hasLoaded = false
 
     greenScoreText = document.getElementById("green-lifes")
     redScoreText = document.getElementById("red-lifes")
     updateScores(gameScore)
-
+    
+    let loadingModal = document.getElementById("loading-modal")
     createApp()
     .then(app => {
+        loadingModal.style.display = "none"
         hasLoaded = true
         pixiApp = app
         inputManager = new InputManager()
@@ -121,13 +125,40 @@ function connectSocket() {
 
     })
 
-    socket.on('map_created', (body) => {
-        body.tiles.forEach(element => {
+    socket.on('game_start', (body) => {
+        body.map.tiles.forEach(element => {
             if(element.id == 0) return
-            const mapSprite = new MapSprite(element, body.tileSize)
+            const mapSprite = new MapSprite(element, body.map.tileSize)
             camera.addChild(mapSprite.sprite) 
-        });
+        })
 
+        inputInterval = setInterval(() => {
+            if(!inputManager) return
+            const worldMousePos = camera.screenToPosition(inputManager.mouse)
+            socket.emit('player_input', {
+                keyboard: inputManager.keyboard,
+                mouse: {
+                    ...inputManager.mouse,
+                    ...worldMousePos
+                },
+            })
+        }, 10)
+    })
+
+    socket.on('game_end', (body) => {
+        clearInterval(inputInterval)
+        inputInterval = null
+
+        document.getElementById("final-game-modal").style.display = "flex"
+        document.getElementById("final-game-winning-team").innerText = body.winningTeam
+        document.getElementById("final-game-winning-team").classList.add(body.winningTeam)
+        updateScores(body.gameScore)
+
+        setTimeout(() => {
+            document.getElementById("final-game-modal").style.display = "none"
+            document.getElementById("final-game-winning-team").innerText = body.winningTeam
+            document.getElementById("final-game-winning-team").classList.remove(body.winningTeam)
+        }, 5000)
     })
 
     socket.on('player_connect', (body) => {
@@ -135,17 +166,9 @@ function connectSocket() {
         camera.target = body
     })
 
-    setInterval(() => {
-        if(!inputManager) return
-        const worldMousePos = camera.screenToPosition(inputManager.mouse)
-        socket.emit('player_input', {
-            keyboard: inputManager.keyboard,
-            mouse: {
-                ...inputManager.mouse,
-                ...worldMousePos
-            },
-        })
-    }, 10)
+    document.getElementById("start-game-button").addEventListener("click", function() {
+        socket.emit('player_game_start', {})
+    })
 }
 
 function createApp() {
