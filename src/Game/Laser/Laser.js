@@ -11,7 +11,7 @@ class Laser {
 
         this.game = game
         
-        this.damage = 30
+        this.damage = 35
         this.speed = 15
         this.team = team
         this.size = {
@@ -29,7 +29,7 @@ class Laser {
             isSensor: true,
             shape: planck.Box(this.size.x, this.size.y, planck.Vec2(0, 0), 0),
             filterCategoryBits: GameObjectsMasks.LASER,
-            filterMaskBits: GameObjectsMasks.EVERYTHING ^ GameObjectsMasks.LASER ^ (team === 'red' ? GameObjectsMasks.RED_PLAYER : GameObjectsMasks.GREEN_PLAYER),
+            filterMaskBits: GameObjectsMasks.EVERYTHING ^ GameObjectsMasks.RED_BLOCK ^ GameObjectsMasks.GREEN_BLOCK ^ GameObjectsMasks.LASER ^ (team === 'red' ? GameObjectsMasks.RED_PLAYER : GameObjectsMasks.GREEN_PLAYER),
         })
         this.physicsBody.setAngle(angle)
         this.physicsBody.setUserData(this)

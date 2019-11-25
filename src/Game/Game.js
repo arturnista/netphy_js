@@ -31,6 +31,11 @@ class Game {
 
         this.tick = 0
 
+        this.gameScore = {
+            red: 0,
+            green: 0
+        }
+
     }
 
     create(server) {    
@@ -120,9 +125,19 @@ class Game {
     emitGameState() {
         this.connection.emit('game_state', {
             tick: this.tick,
-            gameObjects: this.gameObjects.map(x => x.getNetInfo())
+            gameObjects: this.gameObjects.map(x => x.getNetInfo()),
+            gameScore: this.gameScore
         })
         this.tick += 1
+    }
+
+    playerDeath(player) {
+        if(player.team == 'red') {
+            this.gameScore.green += 1
+        } else if(player.team == 'green') {
+            this.gameScore.red += 1
+        }
+        console.log(this.gameScore)
     }
 
 }

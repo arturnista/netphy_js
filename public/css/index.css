@@ -16,3 +16,33 @@ body {
     /* border: 1px solid #aaa;
     background-color: #fafafa; */
 }
+
+.game-score-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-score {
+    width: 800px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.game-team-score {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.team-icon {
+    width: 37px;
+    height: 26px;
+}
+
+.team-lifes {
+    color: #212121;
+    margin: 0 2em;
+}

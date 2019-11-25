@@ -10,8 +10,20 @@ let gameObjects = []
 let playerData = {}
 let pixiApp = null
 
+let gameScore = {
+    red: 0,
+    green: 0
+}
+
+let greenScoreText = null
+let redScoreText = null
+
 window.onload = function() {
     hasLoaded = false
+
+    greenScoreText = document.getElementById("green-lifes")
+    redScoreText = document.getElementById("red-lifes")
+    updateScores(gameScore)
 
     createApp()
     .then(app => {
@@ -30,11 +42,21 @@ window.onload = function() {
     })
 }
 
+function updateScores(gameScore) {
+    greenScoreText.innerText = gameScore.green + 'x'
+    redScoreText.innerText = gameScore.red + 'x'
+}
+
 function connectSocket() {
     
     const socket = io(window.location.href)
     socket.on('game_state', (body) => {
         if(!hasLoaded) return
+
+        if(gameScore.red != body.gameScore.red || gameScore.green != body.gameScore.green) {
+            updateScores(body.gameScore)
+        }
+        gameScore = body.gameScore
 
         // Create the new objects
         for (const object of body.gameObjects) {
@@ -115,9 +137,13 @@ function connectSocket() {
 
     setInterval(() => {
         if(!inputManager) return
+        const worldMousePos = camera.screenToPosition(inputManager.mouse)
         socket.emit('player_input', {
             keyboard: inputManager.keyboard,
-            mouse: inputManager.mouse,
+            mouse: {
+                ...inputManager.mouse,
+                ...worldMousePos
+            },
         })
     }, 10)
 }

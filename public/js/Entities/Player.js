@@ -11,6 +11,7 @@ class Player extends GameObject {
         this.spriteReal.anchor.set(.5, .5)
         this.spriteReal.width = data.size.x * 2
         this.spriteReal.height = data.size.y * 2
+        this.spriteReal.rotation = data.angle
         this.sprite.addChild(this.spriteReal)
 
         this.positionText = new window.PIXI.Text('100', { fontFamily: 'Arial', fontSize: 10, fill: 0x212121, align: 'center', strokeThickness: .5, stroke: 0xFAFAFA })
@@ -22,7 +23,7 @@ class Player extends GameObject {
         this.sprite.id = data.id
         this.sprite.x = data.position.x
         this.sprite.y = data.position.y
-        this.sprite.rotation = data.angle
+        // this.sprite.rotation = data.angle
         // this.sprite.anchor.set(.5, .5)
         
     }

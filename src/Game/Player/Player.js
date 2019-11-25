@@ -3,6 +3,7 @@ const _ = require('lodash')
 const planck = require('planck-js')
 const Laser = require('../Laser/Laser')
 const GameObjectsMasks = require('../GameObjectsMasks')
+const MathUtils = require('../../Utils/Math')
 
 class Player {
 
@@ -18,8 +19,11 @@ class Player {
 
         this.speed = 0
         this.maxSpeed = 10
+        this.rotateSpeedMoving = 200
         this.rotateSpeed = 300
         this.acceleration = this.maxSpeed * 2
+        this.targetDirection = {}
+        this.isMoving = false
         
         this.fireAngle = 0
         this.fireDirection = planck.Vec2.zero
@@ -34,7 +38,7 @@ class Player {
         this.killNextFrame = false
         this.respawnNextFrame = false
 
-        this.useMouseController = false
+        this.useMouseController = true
 
         this.inputs = { keyboard: {}, mouse: {} }
         this.lastInputs = { keyboard: {}, mouse: {} }
@@ -80,6 +84,7 @@ class Player {
             position = this.physicsBody.getTransform().p
             angle = this.physicsBody.getAngle()
         }
+
         return {
             id: this.id,
             type: 'Player',
@@ -119,7 +124,9 @@ class Player {
 
         if(!this.isAlive) return
 
+        this.isMoving = false
         if(this.keyIsHold('KeyW')) {
+            this.isMoving = true
             this.speed += this.acceleration * deltatime
             if(this.speed > this.maxSpeed) this.speed = this.maxSpeed
 
@@ -134,26 +141,28 @@ class Player {
             this.speed = 0;
         }
 
-        if(this.keyIsHold('KeyD')) {
-            this.physicsBody.setAngularVelocity(-this.rotateSpeed * deltatime)
-        } else if(this.keyIsHold('KeyA')) {
-            this.physicsBody.setAngularVelocity(this.rotateSpeed * deltatime)
-        } else {
-            this.physicsBody.setAngularVelocity(0)
-        }
-
         const { p } = this.physicsBody.getTransform()
 
         if(this.useMouseController) {
 
             const mousePos = planck.Vec2(this.inputs.mouse.x, this.inputs.mouse.y)
-    
             const position = planck.Vec2(p.x, p.y)
-            this.fireDirection = position.sub(mousePos)
-            this.fireDirection.normalize()
+
+            this.targetDirection = position.sub(mousePos)
+            this.targetDirection.normalize()
+            this.fireDirection = MathUtils.vec2MoveTowards(this.fireDirection, this.targetDirection, 5 * deltatime)
+            // this.fireDirection.normalize()
+
+            // this.fireDirection = position.sub(mousePos)
+            // this.fireDirection.normalize()
             
+            // const targetAngle = Math.atan2(this.fireDirection.y, this.fireDirection.x) - Math.PI / 2
+            // this.fireAngle = MathUtils.moveTowards(this.fireAngle, targetAngle, 2 * deltatime)
+
             this.fireAngle = Math.atan2(this.fireDirection.y, this.fireDirection.x) - Math.PI / 2
             this.physicsBody.setAngle(this.fireAngle)
+
+            // this.fireDirection.mul(-1)
     
             if(this.inputs.mouse.isDown) {
                 this.isFiring = true
@@ -163,9 +172,19 @@ class Player {
 
         } else {
 
+            if(this.keyIsHold('KeyD')) {
+                let rotateSpeed = this.isMoving ? this.rotateSpeedMoving : this.rotateSpeed
+                this.physicsBody.setAngularVelocity(-rotateSpeed * deltatime)
+            } else if(this.keyIsHold('KeyA')) {
+                let rotateSpeed = this.isMoving ? this.rotateSpeedMoving : this.rotateSpeed
+                this.physicsBody.setAngularVelocity(rotateSpeed * deltatime)
+            } else {
+                this.physicsBody.setAngularVelocity(0)
+            }
+
             if(this.inputs.keyboard['Space']) {
                 this.isFiring = true
-                this.fireDirection = this.physicsBody.getWorldVector( planck.Vec2(0, -1) )
+                this.fireDirection = this.physicsBody.getWorldVector( planck.Vec2(0, 1) )
                 this.fireAngle = this.physicsBody.getAngle()
             } else {
                 this.isFiring = false
@@ -182,8 +201,8 @@ class Player {
                 this.game.createGameObject(new Laser({
                     game: this.game,
                     position: planck.Vec2(
-                        p.x + (this.fireDirection.x * this.size.x * 2),
-                        p.y + (this.fireDirection.y * this.size.y * 2),
+                        p.x + (-this.fireDirection.x * this.size.x * 2),
+                        p.y + (-this.fireDirection.y * this.size.y * 2),
                     ),
                     angle: this.fireAngle,
                     team: this.team
@@ -198,6 +217,7 @@ class Player {
         this.game.physics.destroyBody(this.physicsBody)
 
         this.isAlive = false
+        this.game.playerDeath(this)
 
         setTimeout(() => this.respawnNextFrame = true, 5000)
     }
@@ -210,12 +230,7 @@ class Player {
     }
 
     onBeginContact(collision, contact) {
-        // console.log(contact.getManifold())
-        // const collisionTeam = _.get(collision, 'team', false)
-        // if(collisionTeam && collisionTeam != this.team) {
-        //     collision.dealDamage && collision.dealDamage(this.damage)
-        //     this.game.destroyGameObject(this)
-        // }
+
     }
 
 }

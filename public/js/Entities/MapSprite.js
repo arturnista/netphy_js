@@ -2,6 +2,7 @@ class MapSprite extends GameObject {
 
     constructor(data, size) {
         super(data)
+        if(data.id == 192 || data.id == 191) console.log(data.id)
         const tileId = (data.id).toString()
         const spriteName = 'tile' + (tileId.length == 1 ? '00' + tileId : tileId.length == 2 ? '0' + tileId : tileId)
         this.sprite = new PIXI.Sprite(PIXI.loader.resources[spriteName].texture)
