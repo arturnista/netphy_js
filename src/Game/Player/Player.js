@@ -56,7 +56,7 @@ class Player {
 
         this.socket.on('player_game_start', (body) => {
             console.log('aqui?')
-            this.game.startGame()
+            this.game.startGame(body)
         })
 
     }
