@@ -1,7 +1,7 @@
 # Netphy
 _Multiplayer game for Network and Physics class_
 
-# How to run
+## How to run
 You need to have Node.js version 8.x or greater.
 
 After that, you need to install dependecies.
@@ -16,3 +16,9 @@ $> node ./server.js
 ```
 
 Open `localhost:5000` on your browser to play it.
+
+## Authors
+
+Artur Morelle Nista  
+Ariel Goulart  
+Dominik Campos Gause  
