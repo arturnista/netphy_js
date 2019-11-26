@@ -103,7 +103,7 @@ class Game {
         player.start(respawn)
     }
 
-    startGame() {
+    startGame(config) {
 
         if(this.gameIsRunning) return
 
@@ -118,13 +118,16 @@ class Game {
         this.lastFrameTime = 0
         this.tick = 0
 
+        this.killsToWin = config.killsToWin || 3
+        this.refreshDelay = config.refreshDelay || 10
+
         this.gameScore = {
             red: 0,
             green: 0
         }
 
         this.gameLoopInterval = setInterval(this.gameLoop, 1)
-        this.emitGameStateInterval = setInterval(this.emitGameState, 10)
+        this.emitGameStateInterval = setInterval(this.emitGameState, this.refreshDelay)
 
         this.connection.emit('game_start', {
             map: {

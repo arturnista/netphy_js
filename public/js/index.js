@@ -20,6 +20,11 @@ let redScoreText = null
 
 let inputInterval = null
 
+let gameConfig = {
+    killsToWin: 3,
+    refreshDelay: 10
+}
+
 window.onload = function() {
     hasLoaded = false
 
@@ -137,10 +142,7 @@ function connectSocket() {
             const worldMousePos = camera.screenToPosition(inputManager.mouse)
             socket.emit('player_input', {
                 keyboard: inputManager.keyboard,
-                mouse: {
-                    ...inputManager.mouse,
-                    ...worldMousePos
-                },
+                mouse: Object.assign({}, inputManager.mouse, worldMousePos),
             })
         }, 10)
     })
@@ -167,7 +169,16 @@ function connectSocket() {
     })
 
     document.getElementById("start-game-button").addEventListener("click", function() {
-        socket.emit('player_game_start', {})
+        socket.emit('player_game_start', gameConfig)
+    })
+    
+    document.getElementById("refresh-delay-input").value = gameConfig.refreshDelay
+    document.getElementById("refresh-delay-input").addEventListener('input', function(event) {
+        gameConfig.refreshDelay = parseInt(event.target.value)  
+    })
+    document.getElementById("kills-to-win-input").value = gameConfig.killsToWin
+    document.getElementById("kills-to-win-input").addEventListener('input', function(event) {
+        gameConfig.killsToWin = parseInt(event.target.value)  
     })
 }
 
