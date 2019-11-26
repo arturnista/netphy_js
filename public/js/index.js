@@ -69,13 +69,12 @@ function connectSocket() {
 
         // Create the new objects
         for (const object of body.gameObjects) {
-            // Find if object should be updated
-            const objectToUpdate = gameObjects.find(x => x.id === object.id)
-            
             if(camera.target.id == object.id) {
                 camera.target = object
             }
 
+            // Find if object should be updated
+            const objectToUpdate = gameObjects.find(x => x.id === object.id)
             if(objectToUpdate) {
                 if(object.type == 'Player' && objectToUpdate.isAlive && !object.isAlive) {
                     let explosion = createPlayerExplosion()
@@ -96,9 +95,6 @@ function connectSocket() {
                     case 'Laser':
                         newGameObject = new Laser(object)
                         break
-                    case 'Water':
-                        newGameObject = new Water(object)
-                        break
                     default:
                         break
                 }
@@ -110,6 +106,7 @@ function connectSocket() {
             }
         }
 
+        // Filter out objects that were not update this tick
         gameObjects = gameObjects.filter(object => {
             if(object._tick != body.tick) {
                 let explosion

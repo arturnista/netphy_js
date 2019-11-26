@@ -22,7 +22,6 @@ class Game {
         this.connection = null
         this.gameObjects = []
         this.physics = null
-        this.lastTeam = 'red'
 
         this.gameObjectsToAdd = []
         this.gameObjectsToRemove = []

@@ -16,11 +16,11 @@ class Player extends GameObject {
         this.spriteReal.rotation = data.angle
         this.sprite.addChild(this.spriteReal)
 
-        this.positionText = new window.PIXI.Text('100', { fontFamily: 'Arial', fontSize: 10, fill: 0x212121, align: 'center', strokeThickness: .5, stroke: 0xFAFAFA })
-        this.positionText.scale.set(1, -1)
-        this.positionText.anchor.set(.5, 0)
-        this.positionText.position.set(0, -5)
-        this.sprite.addChild(this.positionText)
+        this.healthText = new window.PIXI.Text('100', { fontFamily: 'Arial', fontSize: 10, fill: 0x212121, align: 'center', strokeThickness: .5, stroke: 0xFAFAFA })
+        this.healthText.scale.set(1, -1)
+        this.healthText.anchor.set(.5, 0)
+        this.healthText.position.set(0, -5)
+        this.sprite.addChild(this.healthText)
 
         this.sprite.id = data.id
         this.sprite.x = data.position.x
@@ -52,11 +52,9 @@ class Player extends GameObject {
         this.isAlive = data.isAlive
 
         if(this.health != data.health) {
-            this.positionText.text = data.health
+            this.healthText.text = data.health
         }
         this.health = data.health
-
-        this.positionText.text
 
     }
 
