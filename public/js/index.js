@@ -95,6 +95,12 @@ function connectSocket() {
                     case 'Laser':
                         newGameObject = new Laser(object)
                         break
+                    case 'Shield':
+                        newGameObject = new Shield(object)
+                        break
+                    case 'WreckingBall':
+                        newGameObject = new WreckingBall(object)
+                        break
                     default:
                         break
                 }
@@ -115,9 +121,11 @@ function connectSocket() {
                 } else if(object.type === 'Laser') {
                     explosion = createLaserExplosion()
                 }
-                explosion.x = object.sprite.x
-                explosion.y = object.sprite.y
-                camera.addChild(explosion)
+                if(explosion) {
+                    explosion.x = object.sprite.x
+                    explosion.y = object.sprite.y
+                    camera.addChild(explosion)
+                }
                 
                 object.destroy()
                 return false
@@ -481,6 +489,7 @@ function createApp() {
             .add('laser_explosion_07', '/img/spell_explosion_07.png')
             .add('laser_explosion_08', '/img/spell_explosion_08.png')
             .add('laser_explosion_09', '/img/spell_explosion_09.png')
+            .add('wreckingBall', '/img/wreckingBall.png')
             .load(() => {
                 resolve(app)
             })

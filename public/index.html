@@ -18,6 +18,8 @@
     <script src="js/Entities/Laser.js"></script>
     <script src="js/Entities/MapSprite.js"></script>
     <script src="js/Entities/Explosions.js"></script>
+    <script src="js/Entities/Shield.js"></script>
+    <script src="js/Entities/WreckingBall.js"></script>
     <script src="js/Camera.js"></script>
     <script src="js/index.js"></script>
 
@@ -27,16 +29,22 @@
     <div id="game-content">
         <!-- <canvas id="game-canvas" width="800" height="600"></canvas> -->
     </div>
-    <div id="pre-game-container" class="wrapper-container">
-        <div class="container">
-            <button id="start-game-button">Start game</button>
-            <div>
-                <label>Kills to win</label>
-                <input id="kills-to-win-input"/>
+    <div id="pre-game-container">
+        <div class="wrapper-container">
+            <div class="container vertical">
+                <div class="vertical-form">
+                    <label>Kills to win</label>
+                    <input id="kills-to-win-input"/>
+                </div>
+                <div class="vertical-form">
+                    <label>Refresh delay</label>
+                    <input id="refresh-delay-input"/>
+                </div>
             </div>
-            <div>
-                <label>Refresh delay</label>
-                <input id="refresh-delay-input"/>
+        </div>
+        <div class="wrapper-container">
+            <div class="container flex-center">
+                <button id="start-game-button" class="btn">Start game</button>
             </div>
         </div>
     </div>

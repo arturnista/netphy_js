@@ -37,6 +37,10 @@ class Physics {
 
     }
 
+    createJoint(def) {
+        return this.world.createJoint(def)
+    }
+
     createBody(def) {
         return this.world.createBody(def)
     }

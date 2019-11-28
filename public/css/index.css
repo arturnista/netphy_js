@@ -32,6 +32,20 @@ body {
     align-items: center;
 }
 
+.container.vertical {
+    flex-direction: column;
+}
+
+.flex-center {
+    justify-content: center;
+    align-items: center;
+}
+
+.vertical-form {
+    display: flex;
+    flex-direction: column;
+}
+
 .game-team-score {
     display: flex;
     justify-content: center;
@@ -87,4 +101,18 @@ body {
 
 .green {
     color: green !important;
+}
+
+.btn {
+    height: 4em;
+    width: 8.5em;
+    background-color: rgba(0, 100, 0, 1);
+    border: 1px solid #212121;
+    color: #fafafa;
+    transition: 300ms all;
+}
+
+.btn:hover {
+    cursor: pointer;
+    background-color: rgba(0, 170, 0, 1);
 }

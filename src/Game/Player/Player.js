@@ -4,6 +4,31 @@ const planck = require('planck-js')
 const Laser = require('../Laser/Laser')
 const GameObjectsMasks = require('../GameObjectsMasks')
 const MathUtils = require('../../Utils/Math')
+const Shield = require('../Shield/Shield')
+const WreckingBall = require('../WreckingBall/WreckingBall')
+
+const shieldSkill = {
+    cooldown: 20000,
+    duration: 5,
+    _usedTime: 0,
+    use: function({player, game}) {
+        if(new Date() - this._usedTime < this.cooldown) return
+        this._usedTime = new Date()
+        return new Shield({ player, game, duration: this.duration })
+    }
+}
+
+const wreckingBallSkill = {
+    cooldown: 5000,
+    duration: 5,
+    range: 30,
+    _usedTime: 0,
+    use: function({player, game}) {
+        if(new Date() - this._usedTime < this.cooldown) return
+        this._usedTime = new Date()
+        return new WreckingBall({ player, game, duration: this.duration, range: this.range })
+    }
+}
 
 class Player {
 
@@ -42,6 +67,7 @@ class Player {
 
         this.inputs = { keyboard: {}, mouse: {} }
         this.lastInputs = { keyboard: {}, mouse: {} }
+        this.skill = shieldSkill
 
         console.log(`SocketIO :: Player connected :: ${this.id}`)
         this.socket.on('disconnect', () => {
@@ -83,6 +109,10 @@ class Player {
 
     }
 
+    getPosition() {
+        return this.physicsBody ? this.physicsBody.getTransform().p : { x:0, y:0 }
+    }
+
     getNetInfo() {
         let position = { x:0, y:0 }
         let angle = 0
@@ -99,7 +129,7 @@ class Player {
             size: this.size,
             team: this.team,
             isAlive: this.isAlive,
-            health: this.health,
+            health: this.health
         }
     }
 
@@ -145,6 +175,13 @@ class Player {
             this.speed -= this.acceleration * deltatime
         } else {
             this.speed = 0;
+        }
+
+        if(this.keyIsHold('KeyE')) {
+            const skillObject = this.skill.use({ game: this.game, player: this })
+            if(skillObject) {
+                this.game.createGameObject(skillObject)
+            }
         }
 
         const { p } = this.physicsBody.getTransform()
@@ -233,10 +270,6 @@ class Player {
         if(this.health <= 0) {
             this.killNextFrame = true
         }
-    }
-
-    onBeginContact(collision, contact) {
-
     }
 
 }

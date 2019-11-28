@@ -10,6 +10,7 @@ module.exports = {
     RED_PLAYER:   1 << 4,
     GREEN_PLAYER: 1 << 5,
     LASER:        1 << 6,
+    SHIELD:       1 << 7,
 
     EVERYTHING:   0xFFFF // or 0xFFFF
 }

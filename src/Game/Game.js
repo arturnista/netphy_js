@@ -181,6 +181,8 @@ class Game {
                         this.physics.destroyBody(object.physicsBody)
                     }
 
+                    object.destroy && object.destroy()
+
                     return false
                 }
                 return true
