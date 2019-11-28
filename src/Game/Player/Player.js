@@ -7,26 +7,101 @@ const MathUtils = require('../../Utils/Math')
 const Shield = require('../Shield/Shield')
 const WreckingBall = require('../WreckingBall/WreckingBall')
 
-const shieldSkill = {
-    cooldown: 20000,
-    duration: 5,
-    _usedTime: 0,
-    use: function({player, game}) {
+class ShieldSkill {
+
+    constructor({ player, game }) {
+        
+        this.game = game
+        this.player = player
+
+        this.cooldown = 20000
+        this.duration = 5
+        this._usedTime = 0
+
+    }
+
+    reset() {
+        this._usedTime = 0
+    }
+
+    use() {
         if(new Date() - this._usedTime < this.cooldown) return
         this._usedTime = new Date()
-        return new Shield({ player, game, duration: this.duration })
+        return new Shield({
+            player: this.player,
+            game: this.game,
+            duration: this.duration
+        })
     }
 }
 
-const wreckingBallSkill = {
-    cooldown: 5000,
-    duration: 5,
-    range: 30,
-    _usedTime: 0,
-    use: function({player, game}) {
+class WreckingBallSkill {
+
+    constructor({ player, game }) {
+
+        this.game = game
+        this.player = player
+
+        this.cooldown = 15000
+        this.duration = 10
+        this.range = 30
+        this._usedTime = 0
+
+    }
+
+    reset() {
+        this._usedTime = 0
+    }
+
+    use() {
         if(new Date() - this._usedTime < this.cooldown) return
         this._usedTime = new Date()
-        return new WreckingBall({ player, game, duration: this.duration, range: this.range })
+        return new WreckingBall({
+            player: this.player,
+            game: this.game,
+            duration: this.duration,
+            range: this.range
+        })
+    }
+}
+
+class EMPSkill {
+
+    constructor({ player, game }) {
+
+        this.game = game
+        this.player = player
+
+        this.cooldown = 15000
+        this.duration = 20000
+        this.range = 30
+        this.rangePow = Math.pow(this.range, 2)
+        this._usedTime = 0
+
+        this.affectedBodies = []
+
+    }
+
+    reset() {
+        this._usedTime = 0
+    }
+
+    use() {
+
+        for (let body = this.game.physics.world.getBodyList(); body; body = body.getNext()) {
+            const userData = body.getUserData()
+            if(userData && userData.team != this.player.team ) {
+                if(planck.Vec2.distanceSquared(body.getTransform().p, this.player.physicsBody.getTransform().p) <= this.rangePow) {
+                    this.affectedBodies.push(userData)
+                    userData.isEMPed = true
+                }
+            }
+        }
+
+        setTimeout(() => {
+            this.affectedBodies.forEach(x => x.isEMPed = false)
+        }, this.duration)
+
     }
 }
 
@@ -59,6 +134,8 @@ class Player {
         this.maxHealth = 100
         this.health = this.maxHealth
 
+        this.isEMPed = false
+
         this.isAlive = true
         this.killNextFrame = false
         this.respawnNextFrame = false
@@ -67,7 +144,7 @@ class Player {
 
         this.inputs = { keyboard: {}, mouse: {} }
         this.lastInputs = { keyboard: {}, mouse: {} }
-        this.skill = shieldSkill
+        this.skill = null
 
         console.log(`SocketIO :: Player connected :: ${this.id}`)
         this.socket.on('disconnect', () => {
@@ -82,6 +159,17 @@ class Player {
 
         this.socket.on('player_game_start', (body) => {
             this.game.startGame(body)
+        })
+
+        this.socket.on('player_select_skill', (body) => {
+            console.log(`SocketIO :: Player selected skill :: ${this.id} :: ${body.name}`)
+            if(body.name == "Shield") {
+                this.skill = new ShieldSkill({ game, player: this })
+            } else if(body.name == "WreckingBall") {
+                this.skill = new WreckingBallSkill({ game, player: this })
+            } else if(body.name == "EMP") {
+                this.skill = new EMPSkill({ game, player: this })
+            }
         })
 
     }
@@ -128,6 +216,7 @@ class Player {
             angle,
             size: this.size,
             team: this.team,
+            isEMPed: this.isEMPed,
             isAlive: this.isAlive,
             health: this.health
         }
@@ -137,6 +226,7 @@ class Player {
         this.isAlive = true
         this.health = this.maxHealth
         this.createPhysicsBody()
+        this.skill && this.skill.reset()
     }
 
     keyIsHold(key) {
@@ -159,6 +249,7 @@ class Player {
         }
 
         if(!this.isAlive) return
+        if(this.isEMPed) return
 
         this.isMoving = false
         if(this.keyIsHold('KeyW')) {
@@ -178,7 +269,7 @@ class Player {
         }
 
         if(this.keyIsHold('KeyE')) {
-            const skillObject = this.skill.use({ game: this.game, player: this })
+            const skillObject = this.skill && this.skill.use({ game: this.game, player: this })
             if(skillObject) {
                 this.game.createGameObject(skillObject)
             }

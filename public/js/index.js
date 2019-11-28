@@ -185,6 +185,11 @@ function connectSocket() {
     document.getElementById("kills-to-win-input").addEventListener('input', function(event) {
         gameConfig.killsToWin = parseInt(event.target.value)  
     })
+
+    socket.emit('player_select_skill',  { name: document.getElementById("player-skill").value })
+    document.getElementById("player-skill").addEventListener('change', function(event) {
+        socket.emit('player_select_skill',  { name: event.target.value })
+    })
 }
 
 function createApp() {

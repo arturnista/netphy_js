@@ -46,6 +46,11 @@ class Player extends GameObject {
         this.sprite.x = data.position.x
         this.sprite.y = data.position.y
 
+        if(this.isEMPed != data.isEMPed) {
+            this.spriteReal.tint = data.isEMPed ? 0xAAAAFF : 0xFFFFFF
+        }
+        this.isEMPed = data.isEMPed
+
         if(this.isAlive != data.isAlive) {
             this.sprite.visible = data.isAlive
         }
