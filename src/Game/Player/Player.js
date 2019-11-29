@@ -224,6 +224,7 @@ class Player {
 
     respawn() {
         this.isAlive = true
+        this.isEMPed = false
         this.health = this.maxHealth
         this.createPhysicsBody()
         this.skill && this.skill.reset()
